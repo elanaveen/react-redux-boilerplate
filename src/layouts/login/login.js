@@ -1,87 +1,88 @@
 import { memo, useEffect, useState } from 'react';
 import { connect } from 'react-redux';
-import { simpleAction } from '../../actions/simple';
+import { login } from '../../actions/auth';
 import {
     useNavigate
 } from "react-router-dom";
+import Icon, { Logo } from '../../components/Icon';
+
+const FEATURES = [
+    { icon: 'message', title: 'Raise a query', desc: 'Ask anything, even anonymously. Classmates and seniors help out.' },
+    { icon: 'globe', title: 'Public forums', desc: 'Follow courses, clubs and campus topics you care about.' },
+    { icon: 'lock', title: 'Private forums', desc: 'Run study circles where you approve every join request.' },
+];
 
 function Login(props) {
-    const { user, simpleaction } = props;
+    const { user, role, dologin } = props;
     const [loading, setloading] = useState(false);
-    const [username, setusername] = useState('');
-    const [password, setpassword] = useState('');
-    const [role, setrole] = useState('');
+    const [form, setform] = useState({ name: '', email: '', college: '', major: '' });
     const [error, seterror] = useState('');
     let navigate = useNavigate();
 
     useEffect(() => {
-        if (user) {
-            navigate("/dashboard")
+        if (user && role === 'student') {
+            navigate("/home")
         }
-    }, [user, navigate])
+    }, [user, role, navigate])
+
+    const set = (key) => (e) => setform({ ...form, [key]: e.target.value });
 
     const onFinish = (e) => {
         e.preventDefault();
-        if (username && password && role) {
-            setloading(true)
-            seterror('')
-            simpleaction({ username: username, password: password, role }).then(res => {
-                setloading(false);
-                navigate("/dashboard")
-            }).catch(err => {
-                console.log(err)
-                setloading(false)
-                seterror(err)
-            })
-        } else {
-            seterror('Enter all fields')
-        }
+        if (!form.name.trim() || !form.college.trim()) return seterror('Please add your name and college.');
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) return seterror('Enter a valid college email.');
+        setloading(true)
+        seterror('')
+        dologin(form).then(() => {
+            setloading(false);
+            navigate("/home")
+        }).catch(err => {
+            setloading(false)
+            seterror(String(err))
+        })
     };
 
     return (
-        <div className="fullpage">
-            <div style={{ width: '100%', padding: '10px 15px', maxWidth: '400px' }}>
-                <h3 style={{ marginBottom: '20px' }}>App name</h3>
-                <form onSubmit={onFinish}>
-                    <label htmlFor="username">Username:</label>
-                    <input type="text" name="username" value={username} onChange={(e) => setusername(e.target.value)} />
-                    <label htmlFor="password"  >Password:</label>
-                    <input type="password" name="password" value={password} onChange={(e) => setpassword(e.target.value)} />
-                    <label htmlFor="role">Role:</label>
-                    <select name="role" value={role} onChange={(e) => setrole(e.target.value)}>
-                        <option value="" disabled>Select</option>
-                        <option value="admin">Admin</option>
-                        <option value="user">User</option>
-                    </select>
-                    {error ?
-                        <div className='errormsg'>
-                            {error}
-                        </div>
-                        : null}
-                    <br />
-                    <button type="submit" disabled={loading}>{loading ? 'Authenticating' : 'Submit'}</button>
-                </form>
-                <br />
-                <hr/>
-                <h3>Features</h3>
-                <ul>
-                    <li>React/Redux</li>
-                    <li>Auth Handling</li>
-                    <li>Dynamic routing</li>
-                    <li>Multiple roles</li>
-                    <li>Window Online/Offline</li>
-                    <li>PWA</li>
-                    <li>Code splitting!</li>
+        <div className="login">
+            <section className="login-hero">
+                <div className="brand brand-lg"><Logo size={34} /><span>Can Forums</span></div>
+                <h1 className="serif login-title">Can anyone help with…?<br /><span className="accent">Yes. Your campus can.</span></h1>
+                <p className="login-lead">A calm place for college students to ask questions, help each other and build communities around courses, clubs and campus life.</p>
+                <ul className="login-features">
+                    {FEATURES.map((f) => (
+                        <li key={f.title}>
+                            <span className="login-feature-icon"><Icon name={f.icon} size={18} /></span>
+                            <span><b>{f.title}</b><br /><span className="muted">{f.desc}</span></span>
+                        </li>
+                    ))}
                 </ul>
-            </div>
+            </section>
+
+            <section className="login-panel">
+                <form className="card login-card" onSubmit={onFinish}>
+                    <h2 className="serif">Join your campus</h2>
+                    <p className="muted">Use your college email. We'll verify it once accounts go live.</p>
+                    <label className="field-label" htmlFor="name">Full name</label>
+                    <input className="field" id="name" autoComplete="name" value={form.name} onChange={set('name')} placeholder="Naveen Kumar" />
+                    <label className="field-label" htmlFor="email">College email</label>
+                    <input className="field" id="email" type="email" autoComplete="email" value={form.email} onChange={set('email')} placeholder="you@college.edu" />
+                    <label className="field-label" htmlFor="college">College</label>
+                    <input className="field" id="college" value={form.college} onChange={set('college')} placeholder="State Institute of Technology" />
+                    <label className="field-label" htmlFor="major">Branch & year <span className="muted">(optional)</span></label>
+                    <input className="field" id="major" value={form.major} onChange={set('major')} placeholder="CSE · 2nd year" />
+                    {error ? <div className='errormsg'>{error}</div> : null}
+                    <button className="btn btn-primary btn-block" type="submit" disabled={loading}>{loading ? 'Signing you in…' : 'Continue'}</button>
+                </form>
+            </section>
         </div>
     );
 }
 
 const mapStateToProps = state => ({
-    ...state,
+    user: state.user,
+    role: state.role,
 })
 const mapDispatchToProps = dispatch => ({
-    simpleaction: (values) => dispatch(simpleAction(values))
+    dologin: (values) => dispatch(login(values))
 })
 export default connect(mapStateToProps, mapDispatchToProps)(memo(Login));

@@ -1,10 +1,12 @@
 import { combineReducers } from 'redux';
-import simpleReducer from './simple';
 import userReducer from './userReducer';
 import roleReducer from "./roleReducer";
+import boardReducer from './boardReducer';
+import uiReducer from './uiReducer';
 
 export default combineReducers({
-    simpleReducer,
     user: userReducer,
-    role: roleReducer
+    role: roleReducer,
+    board: boardReducer,
+    ui: uiReducer
 });

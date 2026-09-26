@@ -3,9 +3,10 @@ export default function roleReducer(state = null, action) {
     const role = Cookies.get('role') ? JSON.parse(Cookies.get('role')) : null;
     switch (action.type) {
         case 'GET_ROLE':
-            Cookies.set('role', JSON.stringify(action.payload))
+            if (action.payload) Cookies.set('role', JSON.stringify(action.payload), { expires: 30 })
+            else Cookies.remove('role')
             return action.payload
         default:
-            return role
+            return state === null ? role : state
     }
 }

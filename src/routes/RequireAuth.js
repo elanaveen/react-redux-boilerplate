@@ -3,37 +3,58 @@ import {
   useLocation,
   Navigate,
 } from "react-router-dom";
-import AuthRoutes from './AuthRoutes';
-import Topheader from "../components/common/topheader";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Sidebar from "../components/Sidebar";
+import CreateForumModal from "../components/CreateForumModal";
+import Icon, { Logo } from "../components/Icon";
+import { setSidebar } from "../actions/board";
 
 function RequireAuth(props) {
   let auth = props.user;
   let location = useLocation();
-  const [online, setonline] = useState(true);
+  const [online, setonline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const off = () => setonline(false);
+    const on = () => setonline(true);
+    window.addEventListener('offline', off);
+    window.addEventListener('online', on);
+    return () => {
+      window.removeEventListener('offline', off);
+      window.removeEventListener('online', on);
+    };
+  }, []);
+
+  useEffect(() => {
+    const main = document.querySelector('.main');
+    if (main) main.scrollTop = 0;
+  }, [location.pathname]);
 
   if (!auth) {
     return <Navigate to="/" state={{ from: location }} />;
   }
 
-  window.addEventListener('offline', function (e) { setonline(false); });
-  window.addEventListener('online', function (e) { setonline(true); });
   return (
-    <div>
-      <div className="site-div">
-        <Topheader menu={AuthRoutes.filter((p) => p.roles.includes(props.role) && p.ismenu)} />
-        {!online ? <div className="networkerror">You are offline! Check your internet connection.</div> : null}
-        <div style={{ minHeight: 'calc(100vh - 90px)' }}>
-          {props.children}
+    <div className="shell">
+      <Sidebar />
+      <main className="main">
+        <div className="mobilebar">
+          <button className="icon-btn" onClick={() => props.opensidebar()} aria-label="Open menu"><Icon name="menu" /></button>
+          <span className="brand"><Logo size={22} /><span>Can Forums</span></span>
         </div>
-        <footer>Copyright @Appname {new Date().getFullYear()}.</footer>
-      </div>
+        {!online ? <div className="networkerror">You're offline. Changes are saved on this device.</div> : null}
+        {props.children}
+      </main>
+      <CreateForumModal />
     </div>
   )
 }
 
 const mapStateToProps = state => ({
-  ...state,
+  user: state.user,
+})
+const mapDispatchToProps = dispatch => ({
+  opensidebar: () => dispatch(setSidebar(true))
 })
 
-export default connect(mapStateToProps, {})(RequireAuth);
+export default connect(mapStateToProps, mapDispatchToProps)(RequireAuth);

@@ -1,70 +1,56 @@
-# Getting Started with Create React App
+# Can Forums
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> "Can anyone help with…?" Yes. Your campus can.
 
-## Available Scripts
+Can Forums is a campus Q&A and community app for college students. Students **raise queries** that peers
+answer. They can also **create public or private forums** for courses, clubs, hostels and study circles.
+Others can follow a public forum or request to join a private one.
 
-In the project directory, you can run:
+The UI follows a calm, warm, Claude-inspired style: ivory and charcoal surfaces, a clay accent, serif
+headings and answers, a large rounded composer, a collapsible sidebar and light/dark themes.
 
-### `npm start`
+The full product ideation (personas, feature set, permissions, roadmap, metrics) is in
+[`docs/PRODUCT.md`](docs/PRODUCT.md).
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Screenshots
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+| Home (ask) | Thread (dark) |
+| --- | --- |
+| ![Home](docs/screenshots/home.png) | ![Thread](docs/screenshots/thread-dark.png) |
+| **Forums** | **Private forum** |
+| ![Forums](docs/screenshots/forums.png) | ![Private forum](docs/screenshots/private-forum.png) |
 
-### `npm test`
+## Features
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Ask**: a greeting and composer on the home page. The first line becomes the title. You can pick a forum, add tags and post anonymously.
+- **Feed**: For you · Latest · Unanswered · Solved · Saved.
+- **Threads**: the question appears as a bubble and answers read like a conversation. You can upvote ("Helpful"), accept an answer, save or delete a query, and use code blocks.
+- **Forums**: Discover, Following and Created-by-you tabs, plus search and a public/private filter.
+- **Public forums**: follow instantly.
+- **Private forums**: queries stay locked until you **request to join** and the owner **approves** you. Owners get a join-requests panel, can remove members, and can switch visibility.
+- **Search** across queries, answers, forums and `#tags`. Results only include content you are allowed to see.
+- **Profile**: helpfulness points (+10 per accepted answer, +2 per helpful vote), stats, and editable details.
+- Responsive mobile drawer, offline banner, and PWA support (from the boilerplate).
 
-### `npm run build`
+## Tech
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+React 18 · Redux (thunk) · React Router 6 · Create React App.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- `src/reducers/boardReducer.js`: users, forums and queries (persisted to `localStorage`, seeded from `src/data/seed.js`)
+- `src/utils/selectors.js`: access rules (`canView`, `canPost`) and feed filters
+- `src/layouts/*`: pages (login, home, query, forums, forum, search, profile)
+- `src/components/*`: sidebar, composer, cards, create-forum modal, icons
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Authentication is mocked: sign in with any name and email. A real backend with college-email
+verification is the first roadmap item.
 
-### `npm run eject`
+## Scripts
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+npm install
+npm start          # dev server on http://localhost:3000
+npm test           # unit + integration tests
+npm run build      # production build
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+To reset the demo data, clear the site's local storage (key `canforums:board:v1`).

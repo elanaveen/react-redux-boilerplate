@@ -1,6 +1,6 @@
 {
-  "short_name": "TimeSheet",
-  "name": "Timesheet",
+  "short_name": "Can Forums",
+  "name": "Can Forums",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#fff",
-  "background_color": "#212121"
+  "theme_color": "#FAF9F5",
+  "background_color": "#FAF9F5"
 }
