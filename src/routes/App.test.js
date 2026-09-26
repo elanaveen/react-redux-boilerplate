@@ -1,11 +1,13 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import configureStore from '../store';
 import App from './App';
 import boardReducer from '../reducers/boardReducer';
-import { feedFor, canView, levelFor, userStats, XP } from '../utils/selectors';
+import { feedFor, canView, levelFor, userStats, visibleAnswers, visibleQueries, XP } from '../utils/selectors';
+import { login } from '../actions/auth';
 
 beforeEach(() => {
+  window.history.pushState({}, '', '/');
   localStorage.clear();
   document.cookie.split(';').forEach((c) => { document.cookie = c.split('=')[0] + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'; });
 });
@@ -68,4 +70,73 @@ test('XP adds up from answers, accepted answers and reactions, and levels follow
   expect(levelFor(0).name).toBe('Fresher');
   expect(levelFor(65)).toMatchObject({ name: 'Helper', index: 3 });
   expect(levelFor(999).next).toBeNull();
+});
+
+test('deactivated posts, forums and accounts disappear for students', () => {
+  let board = boardReducer(undefined, { type: '@@INIT' });
+  const ids = (b) => visibleQueries(b, 'u_new').map((q) => q.id);
+  expect(ids(board)).toContain('q9');
+
+  board = boardReducer(board, { type: 'SET_STATUS', payload: { kind: 'query', id: 'q9', status: 'inactive', at: 1 } });
+  expect(ids(board)).not.toContain('q9');
+
+  board = boardReducer(board, { type: 'SET_STATUS', payload: { kind: 'forum', id: 'f_bus', status: 'inactive', at: 1 } });
+  expect(ids(board)).not.toContain('q3');
+  expect(canView(board.forums.f_bus, 'u_karthik')).toBe(false);
+
+  // Suspending an account hides its answers everywhere.
+  expect(visibleAnswers(board, board.queries.q2).map((a) => a.id)).toContain('a6');
+  board = boardReducer(board, { type: 'SET_STATUS', payload: { kind: 'user', id: 'u_quickcash', status: 'inactive', at: 1 } });
+  expect(visibleAnswers(board, board.queries.q2).map((a) => a.id)).not.toContain('a6');
+
+  // Reactivating restores it.
+  board = boardReducer(board, { type: 'SET_STATUS', payload: { kind: 'forum', id: 'f_bus', status: 'active', at: 2 } });
+  expect(ids(board)).toContain('q3');
+});
+
+test('resolving closes every open report on the same target', () => {
+  let board = boardReducer(undefined, { type: '@@INIT' });
+  const open = (b) => b.reports.filter((r) => r.status === 'open' && r.targetId === 'q9').length;
+  expect(open(board)).toBe(2);
+  board = boardReducer(board, { type: 'RESOLVE_REPORTS', payload: { targetType: 'query', targetId: 'q9', status: 'actioned', adminId: 'admin', at: 1 } });
+  expect(open(board)).toBe(0);
+  expect(board.reports.filter((r) => r.targetId === 'a6')[0].status).toBe('open');
+});
+
+test('a suspended student cannot sign in', async () => {
+  const store = configureStore();
+  const creds = { name: 'Rahul', email: 'rahul@college.edu', college: 'VSB', major: '' };
+  jest.useFakeTimers();
+  let attempt = store.dispatch(login(creds));
+  jest.advanceTimersByTime(1000);
+  const user = await attempt;
+  store.dispatch({ type: 'GET_USER', payload: null });
+  store.dispatch({ type: 'SET_STATUS', payload: { kind: 'user', id: user.id, status: 'inactive', at: 1 } });
+
+  attempt = store.dispatch(login(creds));
+  jest.advanceTimersByTime(1000);
+  jest.useRealTimers();
+  await expect(attempt).rejects.toMatch(/suspended/);
+  expect(store.getState().user).toBeNull();
+});
+
+test('a moderator signs in, sees open reports and deactivates a reported query', async () => {
+  const store = configureStore();
+  render(<Provider store={store}><App /></Provider>);
+  fireEvent.click(screen.getByRole('button', { name: /admin sign in/i }));
+  fireEvent.change(screen.getByLabelText(/moderator email/i), { target: { value: 'admin@vsb.student' } });
+  fireEvent.change(screen.getByLabelText(/passcode/i), { target: { value: 'wrong' } });
+  fireEvent.click(screen.getByRole('button', { name: /sign in to admin console/i }));
+  expect(await screen.findByText(/don't match a moderator account/i)).toBeInTheDocument();
+
+  fireEvent.change(screen.getByLabelText(/passcode/i), { target: { value: 'vsb-admin' } });
+  fireEvent.click(screen.getByRole('button', { name: /sign in to admin console/i }));
+  expect(await screen.findByRole('heading', { name: /admin console/i })).toBeInTheDocument();
+
+  const card = screen.getByText(/Earn ₹5000\/day/).closest('article');
+  fireEvent.click(within(card).getByRole('button', { name: /deactivate query/i }));
+  fireEvent.click(await screen.findByRole('button', { name: /^deactivate$/i }));
+  expect(store.getState().board.queries.q9.status).toBe('inactive');
+  expect(store.getState().board.reports.filter((r) => r.targetId === 'q9').every((r) => r.status === 'actioned')).toBe(true);
+  expect(store.getState().board.modlog[1].text).toMatch(/deactivated query/);
 });

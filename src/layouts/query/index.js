@@ -6,7 +6,8 @@ import Icon from '../../components/Icon';
 import Avatar, { ForumMark } from '../../components/Avatar';
 import { acceptAnswer, addAnswer, askConfirm, deleteQuery, followForum, reactToAnswer, toggleAnswerUpvote, toggleQueryUpvote, toggleSave } from '../../actions/board';
 import { useBurst } from '../../components/Fx';
-import { canPost, canView, isSolved } from '../../utils/selectors';
+import { canPost, canView, isSolved, queryVisible, visibleAnswers } from '../../utils/selectors';
+import { ReportButton } from '../../components/Report';
 import { plural, timeAgo } from '../../utils/format';
 
 const REACTIONS = ['🔥', '💡', '🙏', '😂'];
@@ -54,6 +55,9 @@ function Answer({ query, answer, isAsker }) {
                         <Icon name="check" size={16} />{answer.accepted ? 'Unaccept' : 'Accept answer'}
                     </button>
                 )}
+                <span className="grow" />
+                <ReportButton targetType="answer" targetId={answer.id} queryId={query.id} authorId={answer.authorId}
+                    label={answer.body.length > 90 ? `${answer.body.slice(0, 90)}…` : answer.body} compact />
             </div>
         </article>
     );
@@ -67,6 +71,21 @@ export default function QueryThread() {
     const query = useSelector((s) => s.board.queries[queryId]);
     const forum = useSelector((s) => (query && query.forumId ? s.board.forums[query.forumId] : null));
     const author = useSelector((s) => (query ? s.board.users[query.authorId] : null));
+    const visible = useSelector((s) => (query ? queryVisible(s.board, query) : false));
+    const shownAnswers = useSelector((s) => (query ? visibleAnswers(s.board, query) : []));
+
+    if (query && !visible) {
+        return (
+            <div className="page">
+                <div className="locked card">
+                    <Icon name="shield" size={28} />
+                    <h2 className="display">This query was removed</h2>
+                    <p className="muted">Moderators took it down for breaking the community guidelines.</p>
+                    <Link className="btn btn-primary" to="/home">Back to the feed</Link>
+                </div>
+            </div>
+        );
+    }
 
     if (!query) {
         return <div className="page"><div className="empty">This query doesn't exist or was deleted. <Link to="/home">Back home</Link></div></div>;
@@ -87,7 +106,7 @@ export default function QueryThread() {
     const isAsker = (query.ownerId || query.authorId) === me.id;
     const upvoted = query.upvotes.includes(me.id);
     const saved = query.savedBy.includes(me.id);
-    const answers = [...query.answers].sort((a, b) =>
+    const answers = [...shownAnswers].sort((a, b) =>
         (b.accepted - a.accepted) || (b.upvotes.length - a.upvotes.length) || (a.createdAt - b.createdAt));
 
     const answer = ({ text }) => {
@@ -134,12 +153,16 @@ export default function QueryThread() {
                 <button className={`action ${saved ? 'on' : ''}`} aria-pressed={saved} onClick={() => dispatch(toggleSave(query.id, me.id))}>
                     <Icon name="bookmark" size={15} />{saved ? 'Saved' : 'Save'}
                 </button>
-                {isAsker && (
+                {isAsker ? (
                     <button className="action action-danger" onClick={remove}><Icon name="trash" size={15} />Delete</button>
+                ) : (
+                    // Anonymous askers stay anonymous: the author's account can't be reported from here.
+                    <ReportButton targetType="query" targetId={query.id} queryId={query.id}
+                        authorId={query.anonymous ? null : query.authorId} label={query.title} />
                 )}
             </div>
 
-            <div className="divider"><span>{plural(query.answers.length, 'answer')}</span></div>
+            <div className="divider"><span>{plural(shownAnswers.length, 'answer')}</span></div>
 
             {answers.length === 0 && (
                 <div className="empty">No answers yet. If you know something, even a hint helps.</div>

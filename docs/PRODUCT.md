@@ -78,6 +78,32 @@ Ask (+2) ─► classmates answer (+5 each) ─► asker accepts (+15, confetti)
 - **Leaderboard and badges** give helpers visible status, which is the main reason seniors keep answering.
 - **Anonymous asking** removes the fear of looking "dumb", which is the biggest blocker for juniors.
 
+## 5b. Safety & moderation
+
+**Students report**
+- There is a Report action on every query, answer and forum. It is hidden on your own content and becomes "Reported" once filed.
+- Reasons: spam, scam/cheating/leaked papers, bullying, hate speech, sexual or violent content, misinformation, or other. An optional note can be added.
+- The reporter can also report the author's account in the same step. Anonymous askers can't be reported by account from the thread, so their identity is never revealed.
+
+**Moderators review (admin console)**
+- The queue is grouped by item, with the most-reported and newest first. Each card shows the content, author, forum, reasons, and reporter notes.
+- Actions are Deactivate item, Suspend author, or Dismiss (no violation). Every open report on that item closes together.
+- The Accounts, Posts and Forums tabs let a moderator switch anything active or inactive, with or without a report.
+- Every action goes into the activity log.
+
+**What "inactive" means**
+| Item | Effect for students |
+| --- | --- |
+| Account | Can't sign in; signed out on next action; all their queries and answers hidden |
+| Query / answer | Hidden from feeds, search, counts; direct link shows "removed by moderators" |
+| Forum | Hidden from Discover and search; its queries hidden; page shows "unavailable" |
+
+**Before going live**
+- Server-side admin authentication and role checks (the demo passcode is a front-end mock).
+- Auto-hide after N reports pending review.
+- Notify reporters of the outcome, and let authors appeal.
+- Rate-limit reports to prevent report brigading.
+
 ## 6. Key flows
 
 ```

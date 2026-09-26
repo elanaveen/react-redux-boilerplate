@@ -1,13 +1,13 @@
-import { seedUsers, seedForums, seedQueries } from '../data/seed';
+import { seedUsers, seedForums, seedQueries, seedReports } from '../data/seed';
 import { readLocal } from '../utils/storage';
 
-export const STORAGE_KEY = 'vsbforums:board:v1';
+export const STORAGE_KEY = 'vsbforums:board:v2';
 
-const seed = () => ({ users: seedUsers, forums: seedForums, queries: seedQueries, activity: [] });
+const seed = () => ({ users: seedUsers, forums: seedForums, queries: seedQueries, activity: [], reports: seedReports, modlog: [] });
 
 function load() {
     const saved = readLocal(STORAGE_KEY);
-    if (saved && saved.forums && saved.queries && saved.users) return { activity: [], ...saved };
+    if (saved && saved.forums && saved.queries && saved.users) return { activity: [], reports: [], modlog: [], ...saved };
     return seed();
 }
 
@@ -104,6 +104,34 @@ export default function boardReducer(state = load(), action) {
         case 'LOG_ACTIVITY':
             // Keep the log short; it only powers streaks and today's quests.
             return { ...state, activity: [...state.activity.slice(-300), p] };
+
+        case 'SUBMIT_REPORT':
+            return { ...state, reports: [...state.reports, p] };
+
+        case 'RESOLVE_REPORTS':
+            // Closes every open report on the same target at once.
+            return {
+                ...state,
+                reports: state.reports.map((r) => (r.status === 'open' && r.targetType === p.targetType && r.targetId === p.targetId
+                    ? { ...r, status: p.status, resolvedAt: p.at, resolvedBy: p.adminId } : r)),
+            };
+
+        case 'SET_STATUS': {
+            const patch = { status: p.status, moderatedAt: p.at };
+            if (p.kind === 'user') {
+                if (!state.users[p.id]) return state;
+                return { ...state, users: { ...state.users, [p.id]: { ...state.users[p.id], ...patch } } };
+            }
+            if (p.kind === 'forum') return updateForum(state, p.id, (f) => ({ ...f, ...patch }));
+            if (p.kind === 'query') return updateQuery(state, p.id, (q) => ({ ...q, ...patch }));
+            if (p.kind === 'answer') {
+                return updateQuery(state, p.queryId, (q) => ({ ...q, answers: q.answers.map((a) => (a.id === p.id ? { ...a, ...patch } : a)) }));
+            }
+            return state;
+        }
+
+        case 'LOG_MODERATION':
+            return { ...state, modlog: [p, ...state.modlog].slice(0, 200) };
 
         case 'RESET_BOARD':
             return seed();

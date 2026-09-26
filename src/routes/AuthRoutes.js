@@ -4,6 +4,7 @@ import Forums from '../layouts/forums';
 import Forum from '../layouts/forum';
 import Search from '../layouts/search';
 import Profile from '../layouts/profile';
+import Admin from '../layouts/admin';
 
 const AuthRoutes = [{
     id: 0,
@@ -41,6 +42,12 @@ const AuthRoutes = [{
     path: '/profile',
     roles: ['student'],
     component: <Profile />
+}, {
+    id: 6,
+    title: 'Admin console',
+    path: '/admin',
+    roles: ['admin'],
+    component: <Admin />
 }];
 
 export default AuthRoutes

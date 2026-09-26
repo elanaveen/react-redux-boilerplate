@@ -7,6 +7,7 @@ export const seedUsers = {
     u_fathima: { id: 'u_fathima', name: 'Fathima Begum', email: 'fathima@vsb.student', college: 'VSB College of Engineering Technical Campus', major: 'AI & DS · 2nd year', joinedAt: ago(24 * 120) },
     u_karthik: { id: 'u_karthik', name: 'Karthik S', email: 'karthik@vsb.student', college: 'VSB College of Engineering Technical Campus', major: 'Mechanical · 1st year', joinedAt: ago(24 * 40) },
     u_divya: { id: 'u_divya', name: 'Divya Lakshmi', email: 'divya@vsb.student', college: 'VSB College of Engineering Technical Campus', major: 'IT · 3rd year', joinedAt: ago(24 * 90) },
+    u_quickcash: { id: 'u_quickcash', name: 'Quick Cash Deals', email: 'deals4u@mailbox.example', college: 'Unknown', major: '', joinedAt: ago(26) },
 };
 
 export const seedForums = {
@@ -76,6 +77,10 @@ export const seedQueries = {
                 id: 'a3', authorId: 'u_priya', createdAt: ago(6), upvotes: [], accepted: false, reactions: {},
                 body: 'Agree with Arjun. Also put a GitHub link next to each project so interviewers can see the code.',
             },
+            {
+                id: 'a6', authorId: 'u_quickcash', createdAt: ago(5), upvotes: [], accepted: false, reactions: {},
+                body: 'Resumes are useless. Buy my ready-made "placement kit" for ₹999 and skip all this. Link in bio.',
+            },
         ],
     },
     q3: {
@@ -122,6 +127,12 @@ export const seedQueries = {
         body: 'Need one frontend person and one person comfortable with ML. Problem statement is on campus sustainability.',
         tags: ['hackathon', 'team'], upvotes: ['u_priya', 'u_karthik'], savedBy: [], answers: [],
     },
+    q9: {
+        id: 'q9', forumId: 'f_placements', authorId: 'u_quickcash', anonymous: false, createdAt: ago(9),
+        title: 'Earn ₹5000/day from your hostel room!! Guaranteed placement shortcut',
+        body: 'Pay ₹999 registration fee and get leaked OA answers for every company. DM me on WhatsApp now, only 10 slots left!!!',
+        tags: ['placements'], upvotes: [], savedBy: [], answers: [],
+    },
     q8: {
         id: 'q8', forumId: 'f_placements', authorId: 'u_karthik', anonymous: false, createdAt: ago(50),
         title: 'Best way to practice aptitude in 30 days?',
@@ -129,3 +140,12 @@ export const seedQueries = {
         tags: ['aptitude'], upvotes: ['u_arjun', 'u_priya'], savedBy: [], answers: [],
     },
 };
+
+// Example reports so the moderation console opens with real work in it.
+export const seedReports = [
+    { id: 'r1', targetType: 'query', targetId: 'q9', queryId: 'q9', reporterId: 'u_priya', reason: 'spam', note: 'Selling "leaked" OA answers.', status: 'open', createdAt: ago(8) },
+    { id: 'r2', targetType: 'query', targetId: 'q9', queryId: 'q9', reporterId: 'u_arjun', reason: 'scam', note: '', status: 'open', createdAt: ago(7) },
+    { id: 'r3', targetType: 'user', targetId: 'u_quickcash', queryId: null, reporterId: 'u_divya', reason: 'spam', note: 'Posting the same paid link in every forum.', status: 'open', createdAt: ago(4.5) },
+    { id: 'r4', targetType: 'answer', targetId: 'a6', queryId: 'q2', reporterId: 'u_divya', reason: 'spam', note: '', status: 'open', createdAt: ago(4) },
+    { id: 'r5', targetType: 'answer', targetId: 'a4', queryId: 'q3', reporterId: 'u_arjun', reason: 'misinformation', note: 'I think the bus still leaves at 7:10.', status: 'open', createdAt: ago(3) },
+];

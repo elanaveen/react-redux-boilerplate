@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import Icon from '../../components/Icon';
 import { ForumMark } from '../../components/Avatar';
 import QueryCard from '../../components/QueryCard';
-import { visibleQueries } from '../../utils/selectors';
+import { isActive, visibleQueries } from '../../utils/selectors';
 
 export default function Search() {
     const [params, setParams] = useSearchParams();
@@ -16,7 +16,7 @@ export default function Search() {
     const queries = !needle ? [] : visibleQueries(board, me.id).filter((x) =>
         tagOnly ? x.tags.includes(tagOnly)
             : `${x.title} ${x.body} ${x.tags.join(' ')} ${x.answers.map((a) => a.body).join(' ')}`.toLowerCase().includes(needle));
-    const forums = !needle ? [] : Object.values(board.forums).filter((f) =>
+    const forums = !needle ? [] : Object.values(board.forums).filter(isActive).filter((f) =>
         tagOnly ? f.tags.includes(tagOnly) : `${f.name} ${f.description} ${f.tags.join(' ')}`.toLowerCase().includes(needle));
 
     return (

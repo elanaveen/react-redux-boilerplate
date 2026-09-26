@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Icon from './Icon';
 import Avatar, { ForumMark } from './Avatar';
 import { timeAgo, plural } from '../utils/format';
-import { isSolved } from '../utils/selectors';
+import { isSolved, visibleAnswers } from '../utils/selectors';
 import { toggleQueryUpvote } from '../actions/board';
 import { useBurst } from './Fx';
 
@@ -12,6 +12,7 @@ export default function QueryCard({ query, showForum = true }) {
     const me = useSelector((s) => s.user);
     const author = useSelector((s) => s.board.users[query.authorId]);
     const forum = useSelector((s) => (query.forumId ? s.board.forums[query.forumId] : null));
+    const answerCount = useSelector((s) => visibleAnswers(s.board, query).length);
     const upvoted = query.upvotes.includes(me.id);
     const solved = isSolved(query);
     const [voteRef, burst] = useBurst();
@@ -46,11 +47,11 @@ export default function QueryCard({ query, showForum = true }) {
                 <div className="qcard-foot">
                     {solved ? (
                         <span className="status status-solved"><Icon name="checkCircle" size={14} />Solved</span>
-                    ) : query.answers.length === 0 ? (
+                    ) : answerCount === 0 ? (
                         <span className="status status-open"><span className="pulse" />Needs help</span>
                     ) : null}
                     <Link to={`/query/${query.id}`} className="qcard-answers">
-                        <Icon name="message" size={14} />{plural(query.answers.length, 'answer')}
+                        <Icon name="message" size={14} />{plural(answerCount, 'answer')}
                     </Link>
                     {query.tags.map((t) => <Link key={t} to={`/search?q=%23${t}`} className="tag">#{t}</Link>)}
                 </div>

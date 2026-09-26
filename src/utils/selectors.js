@@ -4,22 +4,46 @@ export const isMember = (forum, userId) => !!forum && forum.members.includes(use
 export const isOwner = (forum, userId) => !!forum && forum.ownerId === userId;
 export const hasRequested = (forum, userId) => !!forum && forum.requests.includes(userId);
 
+// Moderation: anything an admin deactivates is hidden from students until it is reactivated.
+export const isActive = (item) => !item || item.status !== 'inactive';
+
 export const canView = (forum, userId) =>
-    !forum || forum.visibility === 'public' || isMember(forum, userId);
+    !forum || (isActive(forum) && (forum.visibility === 'public' || isMember(forum, userId)));
 
 // Public forums accept posts from anyone (posting auto-follows); private ones need membership.
 export const canPost = canView;
 
+const authorActive = (board, item) => isActive(board.users[item.ownerId || item.authorId]);
+
+export const queryVisible = (board, q) => isActive(q) && authorActive(board, q);
+
+export const visibleAnswers = (board, q) => q.answers.filter((a) => isActive(a) && authorActive(board, a));
+
 export function visibleQueries(board, userId) {
     return Object.values(board.queries)
-        .filter((q) => canView(q.forumId ? board.forums[q.forumId] : null, userId))
+        .filter((q) => queryVisible(board, q) && canView(q.forumId ? board.forums[q.forumId] : null, userId))
         .sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export const followedForums = (board, userId) =>
     Object.values(board.forums)
-        .filter((f) => isMember(f, userId))
+        .filter((f) => isActive(f) && isMember(f, userId))
         .sort((a, b) => a.name.localeCompare(b.name));
+
+export const hasReported = (board, userId, targetType, targetId) =>
+    board.reports.some((r) => r.reporterId === userId && r.targetType === targetType && r.targetId === targetId);
+
+export const REPORT_REASONS = [
+    { id: 'spam', label: 'Spam or advertising' },
+    { id: 'scam', label: 'Scam, cheating or leaked papers' },
+    { id: 'harassment', label: 'Bullying or harassment' },
+    { id: 'hate', label: 'Hate speech or abuse' },
+    { id: 'explicit', label: 'Sexual or violent content' },
+    { id: 'misinformation', label: 'False or misleading information' },
+    { id: 'other', label: 'Something else' },
+];
+
+export const reasonLabel = (id) => (REPORT_REASONS.find((r) => r.id === id) || { label: id }).label;
 
 export const pendingRequestCount = (board, userId) =>
     Object.values(board.forums)
@@ -113,6 +137,7 @@ export function badgesFor(board, userId) {
 
 export function leaderboard(board, limit = 5) {
     return Object.values(board.users)
+        .filter(isActive)
         .map((u) => ({ user: u, points: userStats(board, u.id).points }))
         .filter((r) => r.points > 0)
         .sort((a, b) => b.points - a.points)
@@ -130,7 +155,7 @@ export function feedFor(board, userId, filter) {
             return all.filter((q) => !q.forumId || isMember(board.forums[q.forumId], userId));
         }
         case 'unanswered':
-            return all.filter((q) => q.answers.length === 0);
+            return all.filter((q) => visibleAnswers(board, q).length === 0);
         case 'solved':
             return all.filter(isSolved);
         case 'saved':

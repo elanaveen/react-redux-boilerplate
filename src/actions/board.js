@@ -14,6 +14,45 @@ export const askConfirm = ({ title, body, confirmLabel = 'Confirm', danger = fal
     ({ type: 'SET_CONFIRM', payload: { title, body, confirmLabel, danger, onConfirm } });
 export const closeConfirm = () => ({ type: 'SET_CONFIRM', payload: null });
 
+// ---- Reporting (students) ----
+export const openReport = (target) => ({ type: 'SET_REPORT', payload: target });
+export const closeReport = () => ({ type: 'SET_REPORT', payload: null });
+
+export const submitReport = ({ targetType, targetId, queryId = null, reason, note, alsoUserId = null }, reporterId) => (dispatch, getState) => {
+    const already = (type, id) => getState().board.reports.some((r) => r.reporterId === reporterId && r.targetType === type && r.targetId === id);
+    const file = (type, id) => {
+        if (already(type, id)) return;
+        dispatch({
+            type: 'SUBMIT_REPORT',
+            payload: { id: uid('r'), targetType: type, targetId: id, queryId: type === 'user' ? null : queryId, reporterId, reason, note: note.trim(), status: 'open', createdAt: Date.now() },
+        });
+    };
+    file(targetType, targetId);
+    if (alsoUserId) file('user', alsoUserId);
+    dispatch(closeReport());
+    dispatch(toast({ icon: '🛡️', title: 'Report sent', sub: 'Moderators will review it. Thanks for keeping VSB Forums safe.' }));
+};
+
+// ---- Moderation (admins) ----
+const NOUNS = { user: 'account', query: 'query', answer: 'answer', forum: 'forum' };
+
+const logModeration = (admin, text) => ({ type: 'LOG_MODERATION', payload: { id: uid('m'), at: Date.now(), adminName: admin.name, text } });
+
+// kind: 'user' | 'query' | 'answer' | 'forum'; status: 'active' | 'inactive'
+export const setStatus = ({ kind, id, queryId = null, status, label }, admin, { quiet = false } = {}) => (dispatch) => {
+    dispatch({ type: 'SET_STATUS', payload: { kind, id, queryId, status, at: Date.now() } });
+    const verb = status === 'inactive' ? 'deactivated' : 'reactivated';
+    dispatch(logModeration(admin, `${verb} ${NOUNS[kind]} “${label}”`));
+    if (!quiet) dispatch(toast({ icon: status === 'inactive' ? '⛔' : '✅', title: `${NOUNS[kind][0].toUpperCase()}${NOUNS[kind].slice(1)} ${verb}`, sub: label }));
+};
+
+// status: 'actioned' (content was taken down) | 'dismissed' (no violation)
+export const resolveReports = ({ targetType, targetId, status, label }, admin) => (dispatch) => {
+    dispatch({ type: 'RESOLVE_REPORTS', payload: { targetType, targetId, status, adminId: admin.id, at: Date.now() } });
+    dispatch(logModeration(admin, `${status === 'dismissed' ? 'dismissed reports on' : 'closed reports on'} ${NOUNS[targetType]} “${label}”`));
+    if (status === 'dismissed') dispatch(toast({ icon: '👍', title: 'Reports dismissed', sub: label }));
+};
+
 export const createForum = ({ name, emoji, description, visibility, tags }, ownerId) => (dispatch) => {
     const forum = {
         id: uid('f'), name: name.trim(), emoji: emoji || '💬', description: description.trim(),

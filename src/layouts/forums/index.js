@@ -5,7 +5,7 @@ import Icon from '../../components/Icon';
 import { ForumMark } from '../../components/Avatar';
 import ForumAction from '../../components/ForumAction';
 import { setForumModal } from '../../actions/board';
-import { isMember, isOwner } from '../../utils/selectors';
+import { isActive, isMember, isOwner, queryVisible } from '../../utils/selectors';
 import { plural } from '../../utils/format';
 
 const TABS = [
@@ -16,7 +16,7 @@ const TABS = [
 
 function ForumCard({ forum }) {
     const me = useSelector((s) => s.user);
-    const queryCount = useSelector((s) => Object.values(s.board.queries).filter((q) => q.forumId === forum.id).length);
+    const queryCount = useSelector((s) => Object.values(s.board.queries).filter((q) => q.forumId === forum.id && queryVisible(s.board, q)).length);
     const owner = useSelector((s) => s.board.users[forum.ownerId]);
     const requests = isOwner(forum, me.id) ? forum.requests.length : 0;
 
@@ -55,6 +55,7 @@ export default function Forums() {
 
     const needle = q.trim().toLowerCase();
     const list = Object.values(forums)
+        .filter(isActive)
         .filter((f) => tab === 'discover' || (tab === 'following' ? isMember(f, me.id) && !isOwner(f, me.id) : isOwner(f, me.id)))
         .filter((f) => vis === 'all' || f.visibility === vis)
         .filter((f) => !needle || `${f.name} ${f.description} ${f.tags.join(' ')}`.toLowerCase().includes(needle))

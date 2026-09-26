@@ -7,7 +7,8 @@ import ForumAction from '../../components/ForumAction';
 import Icon from '../../components/Icon';
 import Avatar, { ForumMark } from '../../components/Avatar';
 import { askConfirm, createQuery, leaveForum, resolveRequest, updateForum } from '../../actions/board';
-import { canPost, canView, isOwner } from '../../utils/selectors';
+import { canPost, canView, isActive, isOwner, queryVisible } from '../../utils/selectors';
+import { ReportButton } from '../../components/Report';
 import { plural, timeAgo } from '../../utils/format';
 
 function Requests({ forum }) {
@@ -100,12 +101,26 @@ export default function Forum() {
     const navigate = useNavigate();
     const me = useSelector((s) => s.user);
     const forum = useSelector((s) => s.board.forums[forumId]);
-    const queries = useSelector((s) => Object.values(s.board.queries)
-        .filter((q) => q.forumId === forumId).sort((a, b) => b.createdAt - a.createdAt));
+    const board = useSelector((s) => s.board);
+    const queries = Object.values(board.queries)
+        .filter((q) => q.forumId === forumId && queryVisible(board, q)).sort((a, b) => b.createdAt - a.createdAt);
     const [tab, setTab] = useState('queries');
 
     if (!forum) {
         return <div className="page"><div className="empty">Forum not found. <Link to="/forums">Browse forums</Link></div></div>;
+    }
+
+    if (!isActive(forum)) {
+        return (
+            <div className="page">
+                <div className="locked card">
+                    <Icon name="shield" size={28} />
+                    <h2 className="display">This forum is unavailable</h2>
+                    <p className="muted">Moderators have paused <b>{forum.name}</b>. Its queries are hidden until it's reactivated.</p>
+                    <Link className="btn btn-primary" to="/forums">Browse other forums</Link>
+                </div>
+            </div>
+        );
     }
 
     const visible = canView(forum, me.id);
@@ -130,7 +145,10 @@ export default function Forum() {
                         {plural(forum.members.length, forum.visibility === 'private' ? 'member' : 'follower')} · {plural(queries.length, 'query')}
                     </div>
                 </div>
-                <ForumAction forum={forum} />
+                <div className="forum-head-actions">
+                    <ForumAction forum={forum} />
+                    <ReportButton targetType="forum" targetId={forum.id} authorId={forum.ownerId} label={forum.name} />
+                </div>
             </header>
 
             {isOwner(forum, me.id) && <Requests forum={forum} />}

@@ -19,6 +19,8 @@ The full product ideation (personas, feature set, engagement loop, permissions, 
 | ![Home](docs/screenshots/home.png) | ![Thread](docs/screenshots/thread-dark.png) |
 | **Forums** | **Profile, XP & badges** |
 | ![Forums](docs/screenshots/forums.png) | ![Profile](docs/screenshots/profile.png) |
+| **Reporting** | **Admin console** |
+| ![Report dialog](docs/screenshots/report.png) | ![Admin console](docs/screenshots/admin-reports.png) |
 
 ## Features
 
@@ -40,6 +42,13 @@ The full product ideation (personas, feature set, engagement loop, permissions, 
   - A flickering streak flame and a shimmering XP bar.
   - A moving ticker of real questions on the sign-in page.
   - All motion respects `prefers-reduced-motion`.
+- **Reporting**: students can flag a query, an answer or a forum. They pick a reason, can add a note, and can optionally report the author's account too. Reports are anonymous to other students, one report per student per item, and anonymous askers are never exposed.
+- **Admin console** (`/admin`, moderators only):
+  - **Reports**: the review queue, grouped by item and sorted most-reported first. Actions are Deactivate, Suspend author, or Dismiss.
+  - **Accounts**, **Posts** and **Forums**: tabs with an active/inactive switch on every item.
+  - **Activity log**: an audit trail of every moderation action.
+  - Summary tiles show the queue size and what's inactive.
+- **Deactivation** hides content from students everywhere (feeds, search, forum pages, answer counts, leaderboard). A suspended account can't sign in and is signed out on its next action. Reactivating restores everything.
 - **Search**, profile, light/dark/system theme, a responsive mobile drawer, and an offline banner.
 
 ## Theming
@@ -55,9 +64,17 @@ React 18 · Redux (thunk) · React Router 6 · Create React App.
 - `src/reducers/boardReducer.js`: users, forums, queries and the activity log (persisted to `localStorage`, seeded from `src/data/seed.js`)
 - `src/utils/selectors.js`: access rules, feeds, and the XP/level/streak/quest/badge logic
 - `src/components/Fx.js`: toasts, confetti, confirm dialog, badge watcher, "+1" bursts
+- `src/components/Report.js`: report button and dialog
+- `src/layouts/admin`: moderation console
 - `src/layouts/*`: pages (login, home, query, forums, forum, search, profile)
 
 Sign-in is mocked. You can use any name and email, or **Try the demo as a guest**.
+
+**Admin sign-in**: choose "Moderator? Admin sign in" on the sign-in page. The demo moderator is
+`admin@vsb.student` / `vsb-admin`, defined in `src/data/admins.js`. The dev server and the preview build show a
+one-tap fill-in; production builds don't. This is a front-end mock, and anything shipped to the browser can be
+read by anyone. Before real use, admin authentication and every moderation action must be checked on a
+server.
 
 ## Scripts
 
@@ -69,4 +86,4 @@ npm run build           # production build
 npm run build:preview   # single-file preview at preview/vsb-forums.html
 ```
 
-To reset the demo data, clear the site's local storage (key `vsbforums:board:v1`).
+To reset the demo data, clear the site's local storage (key `vsbforums:board:v2`).
