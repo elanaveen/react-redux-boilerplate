@@ -64,7 +64,7 @@ export default function Forums() {
         <div className="page page-wide">
             <header className="page-head">
                 <div>
-                    <h1 className="serif">Forums</h1>
+                    <h1 className="display">Forums</h1>
                     <p className="muted">Find your people: courses, clubs, hostels and study circles.</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => dispatch(setForumModal(true))}><Icon name="plus" size={16} />New forum</button>

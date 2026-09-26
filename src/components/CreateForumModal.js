@@ -5,10 +5,10 @@ import Icon from './Icon';
 import { createForum, setForumModal } from '../actions/board';
 import { normalizeTag } from '../utils/format';
 
-const EMOJIS = ['💬', '📚', '🧪', '💻', '🌳', '∫', '🎨', '🎸', '⚽', '🏠', '💼', '🔭', '🧠', '🌱'];
+const EMOJIS = ['💬', '📚', '💻', '🧠', '⚡', '🔧', '📡', '🚌', '🍛', '🎤', '🏏', '🎨', '💼', '🌱'];
 
 const VISIBILITY = [
-    { id: 'public', icon: 'globe', title: 'Public', desc: 'Anyone on campus can read, follow and ask.' },
+    { id: 'public', icon: 'globe', title: 'Public', desc: 'Anyone at VSB can read, follow and ask.' },
     { id: 'private', icon: 'lock', title: 'Private', desc: 'Only people you approve can see queries.' },
 ];
 
@@ -50,10 +50,10 @@ export default function CreateForumModal() {
         <div className="modal-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
             <form className="modal" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="new-forum-title">
                 <div className="modal-head">
-                    <h2 id="new-forum-title" className="serif">Start a forum</h2>
+                    <h2 id="new-forum-title" className="display">Start a forum</h2>
                     <button type="button" className="icon-btn" onClick={close} aria-label="Close"><Icon name="x" /></button>
                 </div>
-                <p className="muted modal-sub">Create a space for a course, club, hostel or anything your campus cares about.</p>
+                <p className="muted modal-sub">A space for your department, club, bus route or study group.</p>
 
                 <label className="field-label">Icon</label>
                 <div className="emoji-row">
@@ -63,7 +63,7 @@ export default function CreateForumModal() {
                 </div>
 
                 <label className="field-label" htmlFor="forum-name">Name</label>
-                <input id="forum-name" className="field" autoFocus maxLength={60} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. CS201 · Data Structures" />
+                <input id="forum-name" className="field" autoFocus maxLength={60} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. EEE · Circuit Theory Doubts" />
 
                 <label className="field-label" htmlFor="forum-desc">What's it about?</label>
                 <textarea id="forum-desc" className="field" rows={3} maxLength={280} value={description} onChange={(e) => setDescription(e.target.value)}

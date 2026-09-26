@@ -1,6 +1,6 @@
 {
-  "short_name": "Can Forums",
-  "name": "Can Forums",
+  "short_name": "VSB Forums",
+  "name": "VSB Forums",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#FAF9F5",
-  "background_color": "#FAF9F5"
+  "theme_color": "#10245E",
+  "background_color": "#F4F6FB"
 }

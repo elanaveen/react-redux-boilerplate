@@ -6,7 +6,7 @@ import QueryCard from '../../components/QueryCard';
 import ForumAction from '../../components/ForumAction';
 import Icon from '../../components/Icon';
 import Avatar, { ForumMark } from '../../components/Avatar';
-import { createQuery, leaveForum, resolveRequest, updateForum } from '../../actions/board';
+import { askConfirm, createQuery, leaveForum, resolveRequest, updateForum } from '../../actions/board';
 import { canPost, canView, isOwner } from '../../utils/selectors';
 import { plural, timeAgo } from '../../utils/format';
 
@@ -62,18 +62,21 @@ function About({ forum }) {
 
     const switchVisibility = () => {
         const next = forum.visibility === 'public' ? 'private' : 'public';
-        const msg = next === 'public'
-            ? 'Make this forum public? Anyone will be able to read it, and pending requests will be approved.'
-            : 'Make this forum private? Current followers stay as members, and new students will need your approval.';
-        if (!window.confirm(msg)) return;
-        dispatch(updateForum(forum.id, next === 'public'
-            ? { visibility: next, members: [...forum.members, ...forum.requests], requests: [] }
-            : { visibility: next }));
+        dispatch(askConfirm({
+            title: next === 'public' ? 'Make this forum public?' : 'Make this forum private?',
+            body: next === 'public'
+                ? 'Anyone at VSB will be able to read and follow it. Pending join requests will be approved.'
+                : 'Current followers stay as members. New students will need your approval to join.',
+            confirmLabel: next === 'public' ? 'Make public' : 'Make private',
+            onConfirm: () => dispatch(updateForum(forum.id, next === 'public'
+                ? { visibility: next, members: [...forum.members, ...forum.requests], requests: [] }
+                : { visibility: next })),
+        }));
     };
 
     return (
         <div className="card about">
-            <p className="serif-text">{forum.description}</p>
+            <p className="about-text">{forum.description}</p>
             <dl>
                 <dt>Created</dt><dd>{timeAgo(forum.createdAt)} by {owner ? owner.name : 'a student'}</dd>
                 <dt>Visibility</dt><dd>{forum.visibility === 'private' ? 'Private: members only, joining needs approval' : 'Public: anyone can read and follow'}</dd>
@@ -117,7 +120,7 @@ export default function Forum() {
                 <ForumMark forum={forum} size={56} />
                 <div className="grow">
                     <div className="forum-title-row">
-                        <h1 className="serif">{forum.name}</h1>
+                        <h1 className="display">{forum.name}</h1>
                         <span className={`vis vis-${forum.visibility}`}>
                             <Icon name={forum.visibility === 'private' ? 'lock' : 'globe'} size={12} />{forum.visibility === 'private' ? 'Private' : 'Public'}
                         </span>
@@ -135,7 +138,7 @@ export default function Forum() {
             {!visible ? (
                 <div className="locked card">
                     <Icon name="lock" size={28} />
-                    <h2 className="serif">This is a private forum</h2>
+                    <h2 className="display">This is a private forum</h2>
                     <p className="muted">Queries here are only visible to members. Request to join and the owner will review it.</p>
                     <ForumAction forum={forum} />
                 </div>

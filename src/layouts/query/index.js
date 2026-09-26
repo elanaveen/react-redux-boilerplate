@@ -4,15 +4,24 @@ import Composer from '../../components/Composer';
 import RichText from '../../components/RichText';
 import Icon from '../../components/Icon';
 import Avatar, { ForumMark } from '../../components/Avatar';
-import { acceptAnswer, addAnswer, deleteQuery, followForum, toggleAnswerUpvote, toggleQueryUpvote, toggleSave } from '../../actions/board';
+import { acceptAnswer, addAnswer, askConfirm, deleteQuery, followForum, reactToAnswer, toggleAnswerUpvote, toggleQueryUpvote, toggleSave } from '../../actions/board';
+import { useBurst } from '../../components/Fx';
 import { canPost, canView, isSolved } from '../../utils/selectors';
 import { plural, timeAgo } from '../../utils/format';
+
+const REACTIONS = ['🔥', '💡', '🙏', '😂'];
 
 function Answer({ query, answer, isAsker }) {
     const dispatch = useDispatch();
     const me = useSelector((s) => s.user);
     const author = useSelector((s) => s.board.users[answer.authorId]);
     const upvoted = answer.upvotes.includes(me.id);
+    const reactions = answer.reactions || {};
+    const [helpRef, burst] = useBurst();
+    const helpful = () => {
+        if (!upvoted) burst('+2 XP');
+        dispatch(toggleAnswerUpvote(query.id, answer.id, me.id));
+    };
 
     return (
         <article className={`answer ${answer.accepted ? 'answer-accepted' : ''}`}>
@@ -23,9 +32,21 @@ function Answer({ query, answer, isAsker }) {
                 <span className="muted small">· {timeAgo(answer.createdAt)}</span>
                 {answer.accepted && <span className="status status-solved"><Icon name="checkCircle" size={14} />Accepted</span>}
             </div>
-            <RichText text={answer.body} className="serif-text" />
+            <RichText text={answer.body} className="answer-text" />
+            <div className="reactions">
+                {REACTIONS.map((e) => {
+                    const list = reactions[e] || [];
+                    const mine = list.includes(me.id);
+                    return (
+                        <button key={e} className={`reaction ${mine ? 'on' : ''} ${list.length ? '' : 'empty'}`} aria-pressed={mine}
+                            aria-label={`React ${e}`} onClick={() => dispatch(reactToAnswer(query.id, answer.id, e, me.id))}>
+                            <span className="reaction-emoji">{e}</span>{list.length > 0 && <span className="tabnum" key={list.length}>{list.length}</span>}
+                        </button>
+                    );
+                })}
+            </div>
             <div className="actions">
-                <button className={`action ${upvoted ? 'on' : ''}`} aria-pressed={upvoted} onClick={() => dispatch(toggleAnswerUpvote(query.id, answer.id, me.id))}>
+                <button ref={helpRef} className={`action ${upvoted ? 'on' : ''}`} aria-pressed={upvoted} onClick={helpful}>
                     <Icon name="chevronUp" size={16} strokeWidth={2} />Helpful · {answer.upvotes.length}
                 </button>
                 {isAsker && answer.authorId !== me.id && (
@@ -55,7 +76,7 @@ export default function QueryThread() {
             <div className="page">
                 <div className="locked card">
                     <Icon name="lock" size={28} />
-                    <h2 className="serif">This query is in a private forum</h2>
+                    <h2 className="display">This query is in a private forum</h2>
                     <p className="muted">Request to join <b>{forum.name}</b> to read and answer it.</p>
                     <Link className="btn btn-primary" to={`/forum/${forum.id}`}>View forum</Link>
                 </div>
@@ -74,12 +95,12 @@ export default function QueryThread() {
         if (forum && forum.visibility === 'public') dispatch(followForum(forum.id, me.id));
     };
 
-    const remove = () => {
-        if (window.confirm('Delete this query and all its answers?')) {
-            dispatch(deleteQuery(query.id));
-            navigate('/home');
-        }
-    };
+    const remove = () => dispatch(askConfirm({
+        title: 'Delete this query?',
+        body: 'The query and all its answers will be removed for everyone.',
+        confirmLabel: 'Delete', danger: true,
+        onConfirm: () => { navigate('/home'); dispatch(deleteQuery(query.id)); },
+    }));
 
     return (
         <div className="page page-thread">
@@ -89,7 +110,7 @@ export default function QueryThread() {
                 </Link>
             </div>
 
-            <h1 className="serif thread-title">{query.title}</h1>
+            <h1 className="display thread-title">{query.title}</h1>
             <div className="thread-meta">
                 <Avatar user={author} anonymous={query.anonymous} size={22} />
                 <span>{query.anonymous ? 'Anonymous student' : author ? author.name : 'Student'}</span>

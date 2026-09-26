@@ -6,6 +6,7 @@ import {
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import CreateForumModal from "../components/CreateForumModal";
+import { BadgeWatcher, ConfirmDialog, Confetti, Toasts } from "../components/Fx";
 import Icon, { Logo } from "../components/Icon";
 import { setSidebar } from "../actions/board";
 
@@ -40,12 +41,16 @@ function RequireAuth(props) {
       <main className="main">
         <div className="mobilebar">
           <button className="icon-btn" onClick={() => props.opensidebar()} aria-label="Open menu"><Icon name="menu" /></button>
-          <span className="brand"><Logo size={22} /><span>Can Forums</span></span>
+          <span className="brand"><Logo size={24} /><span>VSB <em>Forums</em></span></span>
         </div>
         {!online ? <div className="networkerror">You're offline. Changes are saved on this device.</div> : null}
         {props.children}
       </main>
       <CreateForumModal />
+      <ConfirmDialog />
+      <Toasts />
+      <Confetti />
+      <BadgeWatcher />
     </div>
   )
 }

@@ -1,56 +1,72 @@
-# Can Forums
+# VSB Forums
 
-> "Can anyone help with…?" Yes. Your campus can.
+> Stuck on something? **Ask VSB.**
 
-Can Forums is a campus Q&A and community app for college students. Students **raise queries** that peers
-answer. They can also **create public or private forums** for courses, clubs, hostels and study circles.
-Others can follow a public forum or request to join a private one.
+VSB Forums is a student-run Q&A hangout for VSB College of Engineering Technical Campus. Students
+**raise queries** that batchmates and seniors answer. They can also **create public or private forums**
+for their department, club, bus route or study circle, and others can follow a forum or request to join.
+XP, levels, daily streaks, quests and badges keep people coming back to help.
 
-The UI follows a calm, warm, Claude-inspired style: ivory and charcoal surfaces, a clay accent, serif
-headings and answers, a large rounded composer, a collapsible sidebar and light/dark themes.
+> This is an unofficial student project and is not affiliated with or endorsed by the college.
 
-The full product ideation (personas, feature set, permissions, roadmap, metrics) is in
+The full product ideation (personas, feature set, engagement loop, permissions, roadmap, metrics) is in
 [`docs/PRODUCT.md`](docs/PRODUCT.md).
 
 ## Screenshots
 
-| Home (ask) | Thread (dark) |
+| Home | Thread (dark) |
 | --- | --- |
 | ![Home](docs/screenshots/home.png) | ![Thread](docs/screenshots/thread-dark.png) |
-| **Forums** | **Private forum** |
-| ![Forums](docs/screenshots/forums.png) | ![Private forum](docs/screenshots/private-forum.png) |
+| **Forums** | **Profile, XP & badges** |
+| ![Forums](docs/screenshots/forums.png) | ![Profile](docs/screenshots/profile.png) |
 
 ## Features
 
-- **Ask**: a greeting and composer on the home page. The first line becomes the title. You can pick a forum, add tags and post anonymously.
-- **Feed**: For you · Latest · Unanswered · Solved · Saved.
-- **Threads**: the question appears as a bubble and answers read like a conversation. You can upvote ("Helpful"), accept an answer, save or delete a query, and use code blocks.
-- **Forums**: Discover, Following and Created-by-you tabs, plus search and a public/private filter.
-- **Public forums**: follow instantly.
-- **Private forums**: queries stay locked until you **request to join** and the owner **approves** you. Owners get a join-requests panel, can remove members, and can switch visibility.
-- **Search** across queries, answers, forums and `#tags`. Results only include content you are allowed to see.
-- **Profile**: helpfulness points (+10 per accepted answer, +2 per helpful vote), stats, and editable details.
-- Responsive mobile drawer, offline banner, and PWA support (from the boilerplate).
+- **Ask**: a "Vanakkam" greeting and a composer whose prompts rotate ("Which bus goes to Pollachi now?"). The first line becomes the title. You can pick a forum, add tags or post anonymously.
+- **Feed**: For you · Latest · Needs help · Solved · Saved. New students who follow nothing see the whole campus.
+- **Threads**: answers with emoji reactions (🔥 💡 🙏 😂) and "Helpful" votes, one accepted answer (with confetti), saves, and code blocks.
+- **Forums**:
+  - Public forums can be followed instantly.
+  - Private forums stay locked until the owner **approves** a join request. Owners get a requests panel, can remove members and can switch visibility.
+- **Engagement**:
+  - XP, and levels from Fresher to Legend.
+  - A daily streak and three daily quests.
+  - A Top helpers leaderboard.
+  - Six badges, with unlock toasts and confetti.
+- **Micro-interactions**:
+  - Upvote pops with a "+1".
+  - Springy cards, chips and buttons.
+  - A send button that flies off when you post.
+  - A flickering streak flame and a shimmering XP bar.
+  - A moving ticker of real questions on the sign-in page.
+  - All motion respects `prefers-reduced-motion`.
+- **Search**, profile, light/dark/system theme, a responsive mobile drawer, and an offline banner.
+
+## Theming
+
+All colors are CSS tokens at the top of `src/assets/css/main.css`. The brand colors (`--brand*` navy and
+`--amber*`) are **provisional**: the college website couldn't be reached from the build environment,
+so swap in the official hex values there to retheme the whole app.
 
 ## Tech
 
 React 18 · Redux (thunk) · React Router 6 · Create React App.
 
-- `src/reducers/boardReducer.js`: users, forums and queries (persisted to `localStorage`, seeded from `src/data/seed.js`)
-- `src/utils/selectors.js`: access rules (`canView`, `canPost`) and feed filters
+- `src/reducers/boardReducer.js`: users, forums, queries and the activity log (persisted to `localStorage`, seeded from `src/data/seed.js`)
+- `src/utils/selectors.js`: access rules, feeds, and the XP/level/streak/quest/badge logic
+- `src/components/Fx.js`: toasts, confetti, confirm dialog, badge watcher, "+1" bursts
 - `src/layouts/*`: pages (login, home, query, forums, forum, search, profile)
-- `src/components/*`: sidebar, composer, cards, create-forum modal, icons
 
-Authentication is mocked: sign in with any name and email. A real backend with college-email
-verification is the first roadmap item.
+Sign-in is mocked. You can use any name and email, or **Try the demo as a guest**.
 
 ## Scripts
 
 ```bash
 npm install
-npm start          # dev server on http://localhost:3000
-npm test           # unit + integration tests
-npm run build      # production build
+npm start               # dev server on http://localhost:3000
+npm test                # tests
+npm run build           # production build
+npm run build:preview   # single-file preview at preview/vsb-forums.html
 ```
 
-To reset the demo data, clear the site's local storage (key `canforums:board:v1`).
+To reset the demo data, clear the site's local storage (key `vsbforums:board:v1`).

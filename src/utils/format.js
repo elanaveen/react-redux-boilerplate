@@ -16,17 +16,18 @@ export function timeAgo(ts) {
     return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export function greeting(name = '') {
+export function greeting() {
     const h = new Date().getHours();
-    const part = h < 5 ? 'Burning the midnight oil' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-    const first = name.split(' ')[0];
-    return first ? `${part}, ${first}` : part;
+    if (h < 5) return 'Burning the midnight oil';
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
 }
 
 export const initials = (name = '?') =>
     name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('') || '?';
 
-const AVATAR_TONES = ['#D97757', '#6A9BCC', '#788C5D', '#C46686', '#BC8B4F', '#8E7CC3', '#4F9A94'];
+const AVATAR_TONES = ['#16307A', '#E07A1F', '#2A7DE1', '#C2417A', '#1B8A6B', '#7A4FD1', '#D14F3F'];
 export function toneFor(key = '') {
     let h = 0;
     for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;

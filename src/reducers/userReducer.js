@@ -1,12 +1,11 @@
-import Cookies from 'js-cookie'
-export default function userReducer(state = null, action) {
-    const user = Cookies.get('user') ? JSON.parse(Cookies.get('user')) : null;
+import { readCookie, writeCookie } from '../utils/storage';
+
+export default function userReducer(state = readCookie('user'), action) {
     switch (action.type) {
         case 'GET_USER':
-            if (action.payload) Cookies.set('user', JSON.stringify(action.payload), { expires: 30 })
-            else Cookies.remove('user')
+            writeCookie('user', action.payload)
             return action.payload
         default:
-            return state === null ? user : state
+            return state
     }
 }

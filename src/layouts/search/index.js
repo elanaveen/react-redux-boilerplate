@@ -21,18 +21,18 @@ export default function Search() {
 
     return (
         <div className="page">
-            <h1 className="serif">Search</h1>
+            <h1 className="display">Search</h1>
             <div className="searchbox searchbox-lg">
                 <Icon name="search" size={18} />
                 <input autoFocus value={q} placeholder="Search queries, answers, forums or #tags"
                     onChange={(e) => setParams(e.target.value ? { q: e.target.value } : {}, { replace: true })} aria-label="Search" />
             </div>
 
-            {!needle && <div className="empty">Try <Link to="/search?q=%23resume">#resume</Link>, <Link to="/search?q=recursion">recursion</Link> or <Link to="/search?q=library">library</Link>.</div>}
+            {!needle && <div className="empty">Try <Link to="/search?q=%23resume">#resume</Link>, <Link to="/search?q=bus">bus</Link> or <Link to="/search?q=hackathon">hackathon</Link>.</div>}
 
             {forums.length > 0 && (
                 <>
-                    <div className="nav-section">Forums</div>
+                    <div className="section-label">Forums</div>
                     <div className="card list">
                         {forums.map((f) => (
                             <Link key={f.id} to={`/forum/${f.id}`} className="person person-link">
@@ -47,7 +47,7 @@ export default function Search() {
 
             {needle && (
                 <>
-                    <div className="nav-section">Queries</div>
+                    <div className="section-label">Queries</div>
                     <section className="feed">
                         {queries.length === 0 ? <div className="empty">No queries found. <Link to="/home">Ask it yourself</Link>. Someone probably has the same doubt.</div>
                             : queries.map((x) => <QueryCard key={x.id} query={x} />)}

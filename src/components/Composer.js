@@ -63,6 +63,25 @@ function ForumPicker({ value, onChange, locked }) {
     );
 }
 
+const PROMPTS = [
+    'Stuck on DBMS normalization?',
+    'Which bus goes to Pollachi now?',
+    'Need a teammate for the hackathon?',
+    'Confused by pointers in C?',
+    'How do I start aptitude prep?',
+    'What are you stuck on?',
+];
+
+function useRotatingPrompt(active) {
+    const [i, setI] = useState(0);
+    useEffect(() => {
+        if (!active) return;
+        const t = setInterval(() => setI((n) => (n + 1) % PROMPTS.length), 3200);
+        return () => clearInterval(t);
+    }, [active]);
+    return PROMPTS[i];
+}
+
 export default function Composer({
     mode = 'ask', placeholder, forumId = null, lockForum = false, autoFocus = false, onSubmit, compact = false,
 }) {
@@ -72,8 +91,11 @@ export default function Composer({
     const [tagDraft, setTagDraft] = useState('');
     const [tagging, setTagging] = useState(false);
     const [anonymous, setAnonymous] = useState(false);
+    const [sent, setSent] = useState(0);
     const ref = useRef(null);
     useAutoGrow(ref, text, compact ? 200 : 320);
+    const rotating = mode === 'ask' && !placeholder;
+    const prompt = useRotatingPrompt(rotating && !text);
 
     useEffect(() => { setTarget(forumId); }, [forumId]);
 
@@ -89,6 +111,7 @@ export default function Composer({
         e && e.preventDefault();
         if (!ready) return;
         onSubmit({ text, forumId: target, tags, anonymous });
+        setSent((n) => n + 1);
         setText(''); setTags([]); setAnonymous(false); setTagging(false);
     };
 
@@ -98,18 +121,19 @@ export default function Composer({
 
     return (
         <form className={`composer ${compact ? 'composer-compact' : ''}`} onSubmit={submit}>
+            {rotating && !text && <span className="composer-ph" key={prompt} aria-hidden="true">{prompt}</span>}
             <textarea
                 ref={ref}
                 value={text}
                 autoFocus={autoFocus}
                 rows={compact ? 1 : 2}
-                placeholder={placeholder || (mode === 'ask' ? 'What are you stuck on?' : 'Share what you know…')}
+                placeholder={rotating ? '' : placeholder || 'Share what you know…'}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={onKeyDown}
                 aria-label={mode === 'ask' ? 'Your question' : 'Your answer'}
             />
             {mode === 'ask' && text.trim() && !compact && (
-                <div className="composer-hint">The first line becomes the title. Add details on the next lines. Wrap code in ``` fences.</div>
+                <div className="composer-hint">First line = title. Add details below. Wrap code in ``` fences.</div>
             )}
             {tags.length > 0 && (
                 <div className="composer-tags">
@@ -145,7 +169,7 @@ export default function Composer({
                         </>
                     )}
                 </div>
-                <button type="submit" className="send" disabled={!ready} aria-label={mode === 'ask' ? 'Ask' : 'Post answer'} title="Send (Ctrl/⌘ + Enter)">
+                <button type="submit" key={sent} className={`send ${sent ? 'sent' : ''}`} disabled={!ready} aria-label={mode === 'ask' ? 'Ask' : 'Post answer'} title="Send (Ctrl/⌘ + Enter)">
                     <Icon name="arrowUp" size={18} strokeWidth={2.25} />
                 </button>
             </div>

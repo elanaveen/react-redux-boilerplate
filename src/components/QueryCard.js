@@ -5,6 +5,7 @@ import Avatar, { ForumMark } from './Avatar';
 import { timeAgo, plural } from '../utils/format';
 import { isSolved } from '../utils/selectors';
 import { toggleQueryUpvote } from '../actions/board';
+import { useBurst } from './Fx';
 
 export default function QueryCard({ query, showForum = true }) {
     const dispatch = useDispatch();
@@ -13,11 +14,15 @@ export default function QueryCard({ query, showForum = true }) {
     const forum = useSelector((s) => (query.forumId ? s.board.forums[query.forumId] : null));
     const upvoted = query.upvotes.includes(me.id);
     const solved = isSolved(query);
+    const [voteRef, burst] = useBurst();
+    const vote = () => {
+        if (!upvoted) burst('+1');
+        dispatch(toggleQueryUpvote(query.id, me.id));
+    };
 
     return (
-        <article className="qcard">
-            <button className={`vote ${upvoted ? 'vote-on' : ''}`} aria-pressed={upvoted} aria-label="Upvote query"
-                onClick={() => dispatch(toggleQueryUpvote(query.id, me.id))}>
+        <article className={`qcard ${solved ? 'qcard-solved' : ''}`}>
+            <button ref={voteRef} className={`vote ${upvoted ? 'vote-on' : ''}`} aria-pressed={upvoted} aria-label="Upvote query" onClick={vote}>
                 <Icon name="chevronUp" size={18} strokeWidth={2} />
                 <span>{query.upvotes.length}</span>
             </button>
@@ -42,7 +47,7 @@ export default function QueryCard({ query, showForum = true }) {
                     {solved ? (
                         <span className="status status-solved"><Icon name="checkCircle" size={14} />Solved</span>
                     ) : query.answers.length === 0 ? (
-                        <span className="status status-open">Needs help</span>
+                        <span className="status status-open"><span className="pulse" />Needs help</span>
                     ) : null}
                     <Link to={`/query/${query.id}`} className="qcard-answers">
                         <Icon name="message" size={14} />{plural(query.answers.length, 'answer')}

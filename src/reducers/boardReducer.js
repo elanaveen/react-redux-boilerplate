@@ -1,13 +1,14 @@
 import { seedUsers, seedForums, seedQueries } from '../data/seed';
+import { readLocal } from '../utils/storage';
 
-export const STORAGE_KEY = 'canforums:board:v1';
+export const STORAGE_KEY = 'vsbforums:board:v1';
+
+const seed = () => ({ users: seedUsers, forums: seedForums, queries: seedQueries, activity: [] });
 
 function load() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (saved && saved.forums && saved.queries && saved.users) return saved;
-    } catch (e) { /* fall back to seed data */ }
-    return { users: seedUsers, forums: seedForums, queries: seedQueries };
+    const saved = readLocal(STORAGE_KEY);
+    if (saved && saved.forums && saved.queries && saved.users) return { activity: [], ...saved };
+    return seed();
 }
 
 const toggle = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
@@ -90,8 +91,22 @@ export default function boardReducer(state = load(), action) {
                 answers: q.answers.map((a) => ({ ...a, accepted: a.id === p.answerId ? !a.accepted : false })),
             }));
 
+        case 'REACT_ANSWER':
+            return updateQuery(state, p.queryId, (q) => ({
+                ...q,
+                answers: q.answers.map((a) => {
+                    if (a.id !== p.answerId) return a;
+                    const reactions = a.reactions || {};
+                    return { ...a, reactions: { ...reactions, [p.emoji]: toggle(reactions[p.emoji] || [], p.userId) } };
+                }),
+            }));
+
+        case 'LOG_ACTIVITY':
+            // Keep the log short; it only powers streaks and today's quests.
+            return { ...state, activity: [...state.activity.slice(-300), p] };
+
         case 'RESET_BOARD':
-            return { users: seedUsers, forums: seedForums, queries: seedQueries };
+            return seed();
 
         default:
             return state;

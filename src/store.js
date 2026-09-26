@@ -2,6 +2,7 @@ import { createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import rootReducer from './reducers/rootReducer';
 import { STORAGE_KEY } from './reducers/boardReducer';
+import { writeLocal } from './utils/storage';
 
 export default function configureStore(initialState = {}) {
     const store = createStore(
@@ -16,9 +17,7 @@ export default function configureStore(initialState = {}) {
         const { board } = store.getState();
         if (board === lastBoard) return;
         lastBoard = board;
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(board));
-        } catch (e) { /* storage full or unavailable */ }
+        writeLocal(STORAGE_KEY, board);
     });
 
     return store;

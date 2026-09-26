@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import Icon, { Logo } from './Icon';
 import Avatar, { ForumMark } from './Avatar';
-import { followedForums, pendingRequestCount, visibleQueries } from '../utils/selectors';
+import { followedForums, levelFor, pendingRequestCount, streakFor, userStats, visibleQueries } from '../utils/selectors';
 import { setForumModal, setSidebar, setTheme } from '../actions/board';
 import { logout } from '../actions/auth';
 
@@ -58,6 +58,25 @@ function UserMenu({ user }) {
     );
 }
 
+function XpCard({ board, user }) {
+    const { points } = userStats(board, user.id);
+    const level = levelFor(points);
+    const streak = streakFor(board, user.id);
+    return (
+        <Link to="/profile" className="xpcard" aria-label={`Level ${level.index} ${level.name}, ${points} XP, ${streak.days} day streak`}>
+            <div className="xpcard-row">
+                <span className="lvl">Lv {level.index}</span>
+                <span className="xpcard-name">{level.name}</span>
+                <span className={`streak ${streak.activeToday ? 'streak-on' : ''}`} title={streak.activeToday ? 'Streak kept today' : 'Do something today to keep your streak'}>
+                    <Icon name="flame" size={15} />{streak.days}
+                </span>
+            </div>
+            <div className="xpbar"><span style={{ width: `${Math.max(4, level.progress * 100)}%` }} /></div>
+            <div className="xpcard-sub">{level.next ? `${points} XP · ${level.toNext} to ${level.next.name}` : `${points} XP · max level`}</div>
+        </Link>
+    );
+}
+
 export default function Sidebar() {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.user);
@@ -75,9 +94,11 @@ export default function Sidebar() {
             <div className={`scrim ${open ? 'show' : ''}`} onClick={close} />
             <aside className={`sidebar ${open ? 'open' : ''}`} onClick={(e) => { if (e.target.closest('a')) close(); }}>
                 <div className="sidebar-head">
-                    <Link to="/home" className="brand"><Logo size={26} /><span>Can Forums</span></Link>
+                    <Link to="/home" className="brand"><Logo size={28} /><span>VSB <em>Forums</em></span></Link>
                     <button className="icon-btn only-mobile" onClick={close} aria-label="Close menu"><Icon name="x" /></button>
                 </div>
+
+                <XpCard board={board} user={user} />
 
                 <Link to="/home" className="new-query"><span className="new-query-icon"><Icon name="plus" size={16} strokeWidth={2.25} /></span>New query</Link>
 
@@ -112,6 +133,7 @@ export default function Sidebar() {
                 </div>
 
                 <UserMenu user={user} />
+                <div className="unofficial">Student-run · not an official college site</div>
             </aside>
         </>
     );

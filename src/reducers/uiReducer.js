@@ -1,22 +1,26 @@
-const THEME_KEY = 'canforums:theme';
+import { readLocal, writeLocal } from '../utils/storage';
 
-function initialTheme() {
-    try {
-        return localStorage.getItem(THEME_KEY) || 'system';
-    } catch (e) {
-        return 'system';
-    }
-}
+const THEME_KEY = 'vsbforums:theme';
 
-export default function uiReducer(state = { theme: initialTheme(), sidebarOpen: false, forumModal: false }, action) {
+const initial = { theme: readLocal(THEME_KEY) || 'system', sidebarOpen: false, forumModal: false, toasts: [], confetti: 0, confirm: null };
+
+export default function uiReducer(state = initial, action) {
     switch (action.type) {
         case 'SET_THEME':
-            try { localStorage.setItem(THEME_KEY, action.payload); } catch (e) { /* ignore */ }
+            writeLocal(THEME_KEY, action.payload);
             return { ...state, theme: action.payload };
         case 'SET_SIDEBAR':
             return { ...state, sidebarOpen: action.payload };
         case 'SET_FORUM_MODAL':
             return { ...state, forumModal: action.payload };
+        case 'PUSH_TOAST':
+            return { ...state, toasts: [...state.toasts.slice(-2), action.payload] };
+        case 'DISMISS_TOAST':
+            return { ...state, toasts: state.toasts.filter((t) => t.id !== action.payload) };
+        case 'CONFETTI':
+            return { ...state, confetti: state.confetti + 1 };
+        case 'SET_CONFIRM':
+            return { ...state, confirm: action.payload };
         default:
             return state;
     }
